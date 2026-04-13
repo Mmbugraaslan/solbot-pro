@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0f">
+<title>SolBot Pro</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --bg2: #111118;
+  --bg3: #1a1a24;
+  --accent: #9945FF;
+  --accent2: #14F195;
+  --red: #FF4757;
+  --amber: #FFB800;
+  --border: rgba(255,255,255,0.07);
+  --text: #ffffff;
+  --muted: rgba(255,255,255,0.45);
+  --font-head: 'Syne', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--font-head); }
+
+/* ── Splash ── */
+#splash {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 999; transition: opacity .5s;
+}
+#splash .logo { font-size: 48px; font-weight: 800; letter-spacing: -2px; }
+#splash .logo span { color: var(--accent2); }
+#splash .sub { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-top: 8px; letter-spacing: 3px; }
+.pulse-ring {
+  width: 80px; height: 80px; border-radius: 50%;
+  border: 2px solid var(--accent); margin-bottom: 24px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: .5; }
+}
+
+/* ── Layout ── */
+#app { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── Header ── */
+.header {
+  padding: 16px 20px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  flex-shrink: 0;
+}
+.header-logo { font-size: 20px; font-weight: 800; letter-spacing: -1px; }
+.header-logo span { color: var(--accent2); }
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--muted);
+  display: inline-block; margin-right: 6px;
+}
+.status-dot.live { background: var(--accent2); animation: blink 1.2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.status-label { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+
+/* ── Scroll area ── */
+.scroll-area { flex: 1; overflow-y: auto; padding: 16px 16px 100px; -webkit-overflow-scrolling: touch; }
+.scroll-area::-webkit-scrollbar { display: none; }
+
+/* ── Cards ── */
+.card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 16px; padding: 16px; margin-bottom: 12px;
+}
+.card-title { font-size: 11px; font-family: var(--font-mono); color: var(--muted); letter-spacing: 2px; margin-bottom: 12px; }
+
+/* ── Portfolio metrics ── */
+.metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.metric-box {
+  background: var(--bg3); border-radius: 12px; padding: 14px 12px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.metric-box .label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); }
+.metric-box .value { font-size: 22px; font-weight: 800; }
+.metric-box .value.green { color: var(--accent2); }
+.metric-box .value.red { color: var(--red); }
+.metric-box .value.purple { color: var(--accent); }
+
+/* ── Bot toggle ── */
+.bot-toggle-wrap { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.toggle-label { font-size: 15px; font-weight: 700; }
+.toggle-sub { font-size: 11px; font-family: var(--font-mono); color: var(--muted); margin-top: 2px; }
+.toggle {
+  width: 56px; height: 30px; border-radius: 15px; background: var(--bg3);
+  border: 1px solid var(--border); position: relative; cursor: pointer;
+  transition: background .3s;
+}
+.toggle.on { background: var(--accent); border-color: var(--accent); }
+.toggle-knob {
+  position: absolute; top: 3px; left: 3px;
+  width: 22px; height: 22px; border-radius: 50%; background: white;
+  transition: transform .3s; box-shadow: 0 2px 6px rgba(0,0,0,.4);
+}
+.toggle.on .toggle-knob { transform: translateX(26px); }
+
+/* ── Token rows ── */
+.token-row {
+  display: flex; align-items: center; gap: 10px; padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.token-row:last-child { border-bottom: none; }
+.token-icon {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800; flex-shrink: 0;
+}
+.token-info { flex: 1; }
+.token-sym { font-size: 14px; font-weight: 700; }
+.token-price { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-top: 2px; }
+.token-right { text-align: right; }
+.score-val { font-size: 16px; font-weight: 800; }
+.score-val.hot { color: var(--accent2); }
+.score-val.warm { color: var(--amber); }
+.score-val.cold { color: var(--muted); }
+.token-badge {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+  padding: 2px 7px; border-radius: 20px; margin-top: 3px; display: inline-block;
+}
+.tb-buy { background: rgba(20,241,149,.15); color: var(--accent2); }
+.tb-wait { background: rgba(255,184,0,.1); color: var(--amber); }
+.tb-hold { background: rgba(153,69,255,.15); color: var(--accent); }
+
+/* ── Signal feed ── */
+.signal-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  animation: fadeIn .4s ease;
+}
+.signal-item:last-child { border-bottom: none; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+.sig-icon {
+  width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 14px;
+}
+.sig-icon.buy { background: rgba(20,241,149,.15); }
+.sig-icon.sell { background: rgba(255,71,87,.15); }
+.sig-icon.skip { background: rgba(255,255,255,.05); }
+.sig-body { flex: 1; }
+.sig-title { font-size: 13px; font-weight: 700; }
+.sig-detail { font-family: var(--font-mono); font-size: 10px; color: var(--muted); margin-top: 2px; }
+.sig-pl { font-family: var(--font-mono); font-size: 12px; font-weight: 700; text-align: right; }
+.sig-pl.pos { color: var(--accent2); }
+.sig-pl.neg { color: var(--red); }
+.sig-pl.neu { color: var(--muted); }
+
+/* ── Settings sliders ── */
+.setting-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.setting-row:last-child { border-bottom: none; }
+.setting-name { font-size: 13px; font-weight: 700; }
+.setting-desc { font-size: 11px; font-family: var(--font-mono); color: var(--muted); margin-top: 2px; }
+.setting-val { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--accent); min-width: 50px; text-align: right; }
+input[type=range] {
+  -webkit-appearance: none; width: 100%; height: 3px;
+  background: var(--bg3); border-radius: 2px; outline: none; margin-top: 8px;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 18px; height: 18px;
+  border-radius: 50%; background: var(--accent); cursor: pointer;
+  box-shadow: 0 0 10px rgba(153,69,255,.5);
+}
+
+/* ── Bottom nav ── */
+.bottom-nav {
+  display: flex; background: var(--bg2);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom);
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 10px 0; cursor: pointer; gap: 4px; transition: opacity .2s;
+}
+.nav-item.active .nav-icon { color: var(--accent); }
+.nav-item.active .nav-label { color: var(--accent); }
+.nav-icon { font-size: 20px; }
+.nav-label { font-family: var(--font-mono); font-size: 9px; color: var(--muted); letter-spacing: 1px; }
+
+/* ── Wallet connect ── */
+.wallet-card {
+  background: linear-gradient(135deg, rgba(153,69,255,.2), rgba(20,241,149,.1));
+  border: 1px solid rgba(153,69,255,.3); border-radius: 16px; padding: 20px;
+  text-align: center; margin-bottom: 12px;
+}
+.wallet-addr { font-family: var(--font-mono); font-size: 12px; color: var(--accent2); margin-top: 8px; word-break: break-all; }
+.btn {
+  display: block; width: 100%; padding: 14px; border-radius: 12px; border: none;
+  font-family: var(--font-head); font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: opacity .2s, transform .1s;
+}
+.btn:active { transform: scale(.97); }
+.btn-primary { background: var(--accent); color: white; }
+.btn-success { background: var(--accent2); color: #000; }
+.btn-danger { background: var(--red); color: white; }
+
+/* ── Pages ── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── Profit chart mini ── */
+.chart-wrap { height: 60px; position: relative; margin: 8px 0; }
+canvas#minichart { width: 100%; height: 60px; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 12px;
+  padding: 10px 20px; font-family: var(--font-mono); font-size: 12px;
+  opacity: 0; transition: all .3s; z-index: 100; white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- Splash -->
+<div id="splash">
+  <div class="pulse-ring"></div>
+  <div class="logo">Sol<span>Bot</span></div>
+  <div class="sub">SOLANA TRADING BOT</div>
+</div>
+
+<!-- App -->
+<div id="app">
+  <div class="header">
+    <div class="header-logo">Sol<span>Bot</span> Pro</div>
+    <div style="display:flex;align-items:center">
+      <span class="status-dot" id="statusDot"></span>
+      <span class="status-label" id="statusLabel">PASIF</span>
+    </div>
+  </div>
+
+  <div class="scroll-area">
+
+    <!-- Dashboard -->
+    <div class="page active" id="page-dashboard">
+      <div class="metrics-grid">
+        <div class="metric-box">
+          <span class="label">BAKİYE</span>
+          <span class="value" id="m-balance">$10.00</span>
+        </div>
+        <div class="metric-box">
+          <span class="label">TOPLAM K/Z</span>
+          <span class="value" id="m-pl">$0.00</span>
+        </div>
+        <div class="metric-box">
+          <span class="label">BAŞARI ORANI</span>
+          <span class="value purple" id="m-wr">-%</span>
+        </div>
+        <div class="metric-box">
+          <span class="label">AÇIK POZİSYON</span>
+          <span class="value" id="m-open">0</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="bot-toggle-wrap">
+          <div>
+            <div class="toggle-label">Otomatik Trading</div>
+            <div class="toggle-sub" id="botSubLabel">Bot kapalı — başlatmak için aç</div>
+          </div>
+          <div class="toggle" id="botToggle" onclick="toggleBot()">
+            <div class="toggle-knob"></div>
+          </div>
+        </div>
+        <div class="card-title">CANLI SİNYAL GEÇMİŞİ</div>
+        <div id="signalFeed"><div style="text-align:center;padding:16px;font-family:var(--font-mono);font-size:11px;color:var(--muted)">Bot bekleniyor...</div></div>
+      </div>
+    </div>
+
+    <!-- Tokens -->
+    <div class="page" id="page-tokens">
+      <div class="card">
+        <div class="card-title">TAKİP EDİLEN TOKENLAR</div>
+        <div id="tokenRows"></div>
+      </div>
+      <div class="card" style="background:rgba(153,69,255,.08);border-color:rgba(153,69,255,.2)">
+        <div class="card-title">MALİYET HESAP</div>
+        <div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)">
+            <span style="color:var(--muted);font-family:var(--font-mono)">Slippage (giriş+çıkış)</span>
+            <span id="c-slip" style="font-family:var(--font-mono);font-size:12px">-$0.0000</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)">
+            <span style="color:var(--muted);font-family:var(--font-mono)">DEX ücreti (%0.5)</span>
+            <span id="c-dex" style="font-family:var(--font-mono);font-size:12px">-$0.0000</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)">
+            <span style="color:var(--muted);font-family:var(--font-mono)">Solana ağ ücreti</span>
+            <span style="font-family:var(--font-mono);font-size:12px">-$0.0007</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0 0;font-weight:700">
+            <span style="font-family:var(--font-mono);font-size:13px">Başabaş için min. hareket</span>
+            <span id="c-breakeven" style="font-family:var(--font-mono);font-size:13px;color:var(--accent)">%0.00</span>
+          </div>
+        </div>
+        <div style="font-size:12px;padding:6px 0">
+          <label style="font-family:var(--font-mono);font-size:10px;color:var(--muted)">İŞLEM MİKTARI ($)</label>
+          <input type="range" id="tradeAmt" min="0.5" max="10" step="0.5" value="2" oninput="updateCost()">
+          <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-top:4px">
+            <span>$0.50</span><span id="tradeAmtVal" style="color:var(--text)">$2.00</span><span>$10.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="page" id="page-settings">
+      <div class="card wallet-card" id="walletCard">
+        <div style="font-size:13px;font-weight:700">Phantom Cüzdan</div>
+        <div id="walletStatus" style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:6px">Bağlı değil</div>
+        <div class="wallet-addr" id="walletAddr" style="display:none"></div>
+        <button class="btn btn-primary" style="margin-top:14px" onclick="connectWallet()">Phantom Bağla</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">BOT AYARLARI</div>
+        <div class="setting-row">
+          <div><div class="setting-name">Minimum Skor</div><div class="setting-desc">Bu skorun altı atlanır</div></div>
+          <div class="setting-val" id="sv-score">80</div>
+        </div>
+        <input type="range" id="s-score" min="60" max="95" step="1" value="80" oninput="document.getElementById('sv-score').textContent=this.value">
+        <div class="setting-row" style="margin-top:12px">
+          <div><div class="setting-name">İşlem Başına Max %</div><div class="setting-desc">Bütçenin kaçı kullanılır</div></div>
+          <div class="setting-val" id="sv-pct">%20</div>
+        </div>
+        <input type="range" id="s-pct" min="5" max="40" step="5" value="20" oninput="document.getElementById('sv-pct').textContent='%'+this.value">
+        <div class="setting-row" style="margin-top:12px">
+          <div><div class="setting-name">Take Profit</div><div class="setting-desc">Kar al hedefi</div></div>
+          <div class="setting-val" id="sv-tp">%25</div>
+        </div>
+        <input type="range" id="s-tp" min="10" max="60" step="5" value="25" oninput="document.getElementById('sv-tp').textContent='%'+this.value">
+        <div class="setting-row" style="margin-top:12px">
+          <div><div class="setting-name">Stop Loss</div><div class="setting-desc">Zarar kes limiti</div></div>
+          <div class="setting-val" id="sv-sl">%12</div>
+        </div>
+        <input type="range" id="s-sl" min="5" max="30" step="1" value="12" oninput="document.getElementById('sv-sl').textContent='%'+this.value">
+      </div>
+
+      <div class="card">
+        <div class="card-title">MOD</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <button class="btn btn-primary" id="modeSimBtn" onclick="setMode('sim')">Simülasyon</button>
+          <button class="btn" id="modeLiveBtn" onclick="setMode('live')" style="background:var(--bg3);color:var(--text)">Gerçek (Live)</button>
+        </div>
+        <div id="modeNote" style="font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-top:10px;text-align:center">
+          Simülasyon modu — gerçek para kullanılmıyor
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end scroll-area -->
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')">
+      <div class="nav-icon">◈</div>
+      <div class="nav-label">PANEL</div>
+    </div>
+    <div class="nav-item" id="nav-tokens" onclick="showPage('tokens')">
+      <div class="nav-icon">◎</div>
+      <div class="nav-label">TOKENLAR</div>
+    </div>
+    <div class="nav-item" id="nav-settings" onclick="showPage('settings')">
+      <div class="nav-icon">◉</div>
+      <div class="nav-label">AYARLAR</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const TOKENS = [
+  {sym:'BONK', price:0.0000218, color:'#FF6B35', short:'BK'},
+  {sym:'WIF',  price:1.24,      color:'#9945FF', short:'WF'},
+  {sym:'POPCAT',price:0.31,     color:'#14F195', short:'PC'},
+  {sym:'MYRO', price:0.089,     color:'#FFB800', short:'MY'},
+  {sym:'BOME', price:0.0071,    color:'#FF4757', short:'BM'},
+  {sym:'MEW',  price:0.0048,    color:'#00D4FF', short:'MW'},
+];
+
+let state = {
+  running: false, mode: 'sim',
+  balance: 10, pl: 0, wins: 0, total: 0,
+  positions: {}, prices: {}, scores: {},
+  signals: [], interval: null,
+  walletConnected: false, walletAddr: ''
+};
+
+TOKENS.forEach(t => { state.prices[t.sym] = t.price; state.scores[t.sym] = 35 + Math.random()*30; });
+
+function fmt(n) { return n < 0.001 ? n.toExponential(2) : '$' + n.toFixed(n < 0.1 ? 6 : 4); }
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'tokens') { renderTokens(); updateCost(); }
+}
+
+function setMode(m) {
+  state.mode = m;
+  document.getElementById('modeSimBtn').style.background = m === 'sim' ? 'var(--accent)' : 'var(--bg3)';
+  document.getElementById('modeLiveBtn').style.background = m === 'live' ? 'var(--red)' : 'var(--bg3)';
+  document.getElementById('modeNote').textContent = m === 'sim'
+    ? 'Simülasyon modu — gerçek para kullanılmıyor'
+    : 'CANLI MOD — gerçek SOL harcanıyor! Dikkatli ol.';
+  showToast(m === 'sim' ? 'Simülasyon modu aktif' : 'Canlı mod aktif — DİKKAT!');
+}
+
+async function connectWallet() {
+  const phantom = window.solana || window.phantom?.solana;
+  if (!phantom) {
+    showToast('Phantom bulunamadı — tarayıcıda aç');
+    document.getElementById('walletStatus').textContent = 'Phantom eklentisi gerekli (Chrome/Brave)';
+    return;
+  }
+  try {
+    const resp = await phantom.connect();
+    state.walletConnected = true;
+    state.walletAddr = resp.publicKey.toString();
+    document.getElementById('walletStatus').textContent = 'Bağlandı';
+    document.getElementById('walletStatus').style.color = 'var(--accent2)';
+    document.getElementById('walletAddr').style.display = 'block';
+    document.getElementById('walletAddr').textContent = state.walletAddr.slice(0,6) + '...' + state.walletAddr.slice(-6);
+    showToast('Phantom bağlandı!');
+  } catch(e) {
+    showToast('Bağlantı reddedildi');
+  }
+}
+
+function toggleBot() {
+  state.running = !state.running;
+  const tog = document.getElementById('botToggle');
+  const dot = document.getElementById('statusDot');
+  const lbl = document.getElementById('statusLabel');
+  const sub = document.getElementById('botSubLabel');
+  if (state.running) {
+    tog.classList.add('on');
+    dot.classList.add('live');
+    lbl.textContent = state.mode === 'live' ? 'CANLI' : 'SİMÜL';
+    sub.textContent = 'Taranıyor — sinyal bekleniyor...';
+    state.interval = setInterval(tick, 2500);
+    showToast('Bot başlatıldı');
+  } else {
+    tog.classList.remove('on');
+    dot.classList.remove('live');
+    lbl.textContent = 'PASIF';
+    sub.textContent = 'Bot kapalı — başlatmak için aç';
+    clearInterval(state.interval);
+    showToast('Bot durduruldu');
+  }
+}
+
+function calcCosts(amt) {
+  const slip = amt * 0.02 * 2;
+  const dex  = amt * 0.005 * 2;
+  const sol  = 0.00073;
+  return { slip, dex, sol, total: slip + dex + sol };
+}
+
+function updateCost() {
+  const amt = parseFloat(document.getElementById('tradeAmt').value);
+  const c = calcCosts(amt);
+  document.getElementById('tradeAmtVal').textContent = '$' + amt.toFixed(2);
+  document.getElementById('c-slip').textContent = '-$' + c.slip.toFixed(4);
+  document.getElementById('c-dex').textContent  = '-$' + c.dex.toFixed(4);
+  document.getElementById('c-breakeven').textContent = '%' + (c.total / amt * 100).toFixed(2);
+}
+
+function renderTokens() {
+  const rows = TOKENS.map(t => {
+    const s = Math.round(state.scores[t.sym]);
+    const p = state.prices[t.sym];
+    const inPos = !!state.positions[t.sym];
+    let badge = '';
+    if (inPos) badge = '<span class="token-badge tb-hold">POZİSYONDA</span>';
+    else if (s >= 80) badge = '<span class="token-badge tb-buy">GÜÇLÜ AL</span>';
+    else badge = '<span class="token-badge tb-wait">BEKLE</span>';
+    const cls = s >= 80 ? 'hot' : s >= 60 ? 'warm' : 'cold';
+    return `<div class="token-row">
+      <div class="token-icon" style="background:${t.color}22;color:${t.color}">${t.short}</div>
+      <div class="token-info">
+        <div class="token-sym">${t.sym}</div>
+        <div class="token-price">${fmt(p)}</div>
+      </div>
+      <div class="token-right">
+        <div class="score-val ${cls}">${s}</div>
+        ${badge}
+      </div>
+    </div>`;
+  });
+  document.getElementById('tokenRows').innerHTML = rows.join('');
+}
+
+function tick() {
+  // Fiyat güncelle
+  TOKENS.forEach(t => {
+    const d = (Math.random() - 0.47) * 0.07;
+    state.prices[t.sym] = Math.max(state.prices[t.sym] * (1 + d), 0.000001);
+    state.scores[t.sym] = Math.min(100, Math.max(0, state.scores[t.sym] + (Math.random() - 0.48) * 12));
+  });
+
+  // Çıkış kontrolü
+  Object.entries(state.positions).forEach(([sym, pos]) => {
+    const cur = state.prices[sym];
+    const chg = (cur - pos.entry) / pos.entry;
+    const tp = parseFloat(document.getElementById('s-tp').value) / 100;
+    const sl = parseFloat(document.getElementById('s-sl').value) / 100;
+    if (chg >= tp || chg <= -sl) {
+      const gross = pos.amt * chg;
+      const net = gross - pos.cost;
+      state.balance += pos.amt + gross;
+      state.pl += net;
+      state.total++;
+      if (net > 0) state.wins++;
+      delete state.positions[sym];
+      const reason = chg >= tp ? 'TP' : 'SL';
+      addSignal({type: net > 0 ? 'sell-ok' : 'sell-loss', sym, net, reason, price: cur});
+    }
+  });
+
+  // Giriş kontrolü
+  const minScore = parseInt(document.getElementById('s-score').value);
+  const pctMax = parseInt(document.getElementById('s-pct').value) / 100;
+  TOKENS.forEach(t => {
+    if (state.positions[t.sym]) return;
+    const s = state.scores[t.sym];
+    if (s >= minScore) {
+      const amt = Math.min(state.balance * pctMax, state.balance);
+      if (amt < 0.5) return;
+      const c = calcCosts(amt);
+      if (amt * 0.15 > c.total * 1.5) {
+        state.balance -= amt;
+        state.positions[t.sym] = {entry: state.prices[t.sym], amt, cost: c.total};
+        addSignal({type: 'buy', sym: t.sym, amt, score: Math.round(s), price: state.prices[t.sym]});
+      }
+    }
+  });
+
+  updateMetrics();
+}
+
+function addSignal(sig) {
+  state.signals.unshift(sig);
+  if (state.signals.length > 12) state.signals.pop();
+  renderSignals();
+}
+
+function renderSignals() {
+  if (!state.signals.length) return;
+  const html = state.signals.map(s => {
+    let icon, cls, title, detail, pl = '';
+    if (s.type === 'buy') {
+      icon = '↑'; cls = 'buy';
+      title = `AL: ${s.sym}`;
+      detail = `${fmt(s.price)} · Skor: ${s.score} · $${s.amt?.toFixed(2)}`;
+      pl = `<div class="sig-pl neu">-</div>`;
+    } else if (s.type === 'sell-ok') {
+      icon = '✓'; cls = 'buy';
+      title = `${s.reason}: ${s.sym}`;
+      detail = `${fmt(s.price)} · Kar alındı`;
+      pl = `<div class="sig-pl pos">+$${Math.abs(s.net).toFixed(4)}</div>`;
+    } else {
+      icon = '✗'; cls = 'sell';
+      title = `${s.reason}: ${s.sym}`;
+      detail = `${fmt(s.price)} · Zarar kesildi`;
+      pl = `<div class="sig-pl neg">-$${Math.abs(s.net).toFixed(4)}</div>`;
+    }
+    return `<div class="signal-item">
+      <div class="sig-icon ${cls}">${icon}</div>
+      <div class="sig-body"><div class="sig-title">${title}</div><div class="sig-detail">${detail}</div></div>
+      ${pl}
+    </div>`;
+  });
+  document.getElementById('signalFeed').innerHTML = html.join('');
+}
+
+function updateMetrics() {
+  const wr = state.total > 0 ? Math.round(state.wins / state.total * 100) : null;
+  const plEl = document.getElementById('m-pl');
+  document.getElementById('m-balance').textContent = '$' + state.balance.toFixed(2);
+  plEl.textContent = (state.pl >= 0 ? '+' : '') + '$' + state.pl.toFixed(4);
+  plEl.className = 'value ' + (state.pl > 0 ? 'green' : state.pl < 0 ? 'red' : '');
+  document.getElementById('m-wr').textContent = wr !== null ? wr + '%' : '-%';
+  document.getElementById('m-open').textContent = Object.keys(state.positions).length;
+}
+
+// Splash
+setTimeout(() => {
+  document.getElementById('splash').style.opacity = '0';
+  setTimeout(() => document.getElementById('splash').style.display = 'none', 500);
+}, 1800);
+
+updateCost();
+</script>
+</body>
+</html>
